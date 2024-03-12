@@ -127,22 +127,9 @@ export-env {
             }
             distro: (os distro)
             batch: {|mod|
-                let o = $in
-                    | lines
-                    | split row ';'
-                    | flatten
-                let cmd = [
-                    'use comma/main.nu *'
-                    'use comma/utils.nu *'
-                    $'source ($mod)'
-                    ...$o
-                    ]
-                    | str join (char newline)
-                print -e $"(ansi $env.comma_index.settings.theme.batch_hint)($cmd)(ansi reset)"
-                let begin = date now
-                nu -c $cmd
-                let duration = (date now) - $begin
-                print -e $"(ansi $env.comma_index.settings.theme.batch_hint)($duration)(ansi reset)"
+                let x = $in
+                utils deprecated '$_.batch' 'batch'
+                $x | utils batch $mod
             }
             test: {|dsc, spec|
                 use lib/test.nu

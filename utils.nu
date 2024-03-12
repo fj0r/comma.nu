@@ -92,8 +92,41 @@ export def --wrapped pp [
 
 export def outdent [] {
     let txt = $in | lines | range 1..
-    let indent = $txt.0 | parse --regex '^(?P<indent>\s*)' | get indent.0 | str length
+    let indent = $txt.0 | parse --regex '^(?<indent>\s*)' | get indent.0 | str length
     $txt
     | each {|s| $s | str substring $indent.. }
     | str join (char newline)
+}
+
+export def batch [
+    ...modules
+    --bare (-b)
+] {
+    let o = $in
+    | lines
+    | split row ';'
+    | flatten
+    let modules = $modules
+    | each { $'source ($in)' }
+    let cmd = if $bare { [] } else {
+        [
+            'use comma/main.nu *'
+            'use comma/utils.nu *'
+        ]
+    }
+    | append [...$modules ...$o]
+    | str join (char newline)
+    print -e $"(ansi $env.comma_index.settings.theme.batch_hint)($cmd)(ansi reset)"
+    let begin = date now
+    nu -c $cmd
+    let duration = (date now) - $begin
+    print -e $"(ansi $env.comma_index.settings.theme.batch_hint)($duration)(ansi reset)"
+}
+
+export def deprecated [old new] {
+    let o = (ansi yellow_bold)
+    let n = (ansi light_green)
+    let g = (ansi light_gray_italic)
+    let r = (ansi reset)
+    print -e $"($o)($old)($g) is deprecated, use ($r)($n)($new)($r)"
 }
