@@ -10,16 +10,13 @@ export def spy [tag?] {
     $o
 }
 
-export def --wrapped ll [...args] {
+export def --wrapped ll [lv ...args] {
     let c = ['navy' 'teal' 'xpurplea' 'xgreen' 'olive' 'maroon']
+    let gray = (ansi light_gray)
+    let dark = (ansi grey39)
     let t = date now | format date '%Y-%m-%dT%H:%M:%S'
-    let n = $args | length
-    let lv = if $n == 1 { 0 } else { $args.0 }
-    let s = match $n {
-        1 => ($args | range 0..)
-        _ => ($args | range 1..)
-    }
-    let s = $s
+    let t = $"(ansi ($c | get $lv))($t)"
+    let s = $args
     | reduce -f {tag: {}, msg:[]} {|x, acc|
         if ($x | describe -d).type == 'record' {
             $acc | update tag ($acc.tag | merge $x)
@@ -27,20 +24,15 @@ export def --wrapped ll [...args] {
             $acc | update msg ($acc.msg | append $x)
         }
     }
-    let gray = (ansi light_gray)
-    let dark = (ansi grey39)
-    let sep = ['│', '│']
     let g = $s.tag
     | transpose k v
     | each {|y| $"($dark)($y.k)=($gray)($y.v)"}
     | str join ' '
-    | do { if ($in | is-empty) {''} else {$"($in)($dark)($sep.0)"} }
-    let r = [
-        $"(ansi ($c | get $lv))($t)($dark)($sep.1)($g)"
-        $"($gray)($s.msg | str join ' ')(ansi reset)"
-    ]
+    | do { if ($in | is-empty) {''} else {$in} }
+    let m = $"($gray)($s.msg | str join ' ')"
+    let r = [$t $g $m]
     | where { $in | is-not-empty }
-    | str join ''
+    | str join $'($dark)│'
     print -e $r
 }
 
