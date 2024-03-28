@@ -1,6 +1,8 @@
-export-env {
-    $env.nlog_level = 2
-    $env.nlog_file = ''
+def get_settings [] {
+    {
+        level: ($env.nlog_level? | default 2)
+        file: ($env.nlog_file?)
+    }
 }
 
 def parse_msg [args] {
@@ -17,12 +19,13 @@ def parse_msg [args] {
 }
 
 export def --wrapped ll [lv ...args] {
-    if $lv < $env.nlog_level {
+    let setting = get_settings
+    if $lv < $setting.level {
         return
     }
     let ty = ['TRC' 'DBG' 'INF' 'WRN' 'ERR' 'CRT']
     let msg = parse_msg $args
-    if ($env.nlog_file? | is-empty) {
+    if ($setting.file? | is-empty) {
         let c = ['navy' 'teal' 'xgreen' 'xpurplea' 'olive' 'maroon']
         let gray = ansi light_gray
         let dark = ansi grey39
@@ -42,7 +45,7 @@ export def --wrapped ll [lv ...args] {
         [
             ''
             $'#($ty | get $lv)# ($msg.txt | str join " ")'
-            ...($msg.tag | transpose k v | each {|y| $"($y.k)=($y.v | to nuon)"})
+            ...($msg.tag | transpose k v | each {|y| $"($y.k)=($y.v | to json)"})
             ''
         ]
         | str join (char newline)
