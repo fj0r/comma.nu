@@ -10,39 +10,6 @@ export def spy [tag?] {
     $o
 }
 
-export def --wrapped ll [lv ...args] {
-    let c = ['navy' 'teal' 'xpurplea' 'xgreen' 'olive' 'maroon']
-    let gray = (ansi light_gray)
-    let dark = (ansi grey39)
-    let t = date now | format date '%Y-%m-%dT%H:%M:%S'
-    let t = $"(ansi ($c | get $lv))($t)"
-    let s = $args
-    | reduce -f {tag: {}, msg:[]} {|x, acc|
-        if ($x | describe -d).type == 'record' {
-            $acc | update tag ($acc.tag | merge $x)
-        } else {
-            $acc | update msg ($acc.msg | append $x)
-        }
-    }
-    let g = $s.tag
-    | transpose k v
-    | each {|y| $"($dark)($y.k)=($gray)($y.v)"}
-    | str join ' '
-    | do { if ($in | is-empty) {''} else {$in} }
-    let m = $"($gray)($s.msg | str join ' ')"
-    let r = [$t $g $m]
-    | where { $in | is-not-empty }
-    | str join $'($dark)│'
-    print -e $r
-}
-
-export alias l0 = ll 0
-export alias l1 = ll 1
-export alias l2 = ll 2
-export alias l3 = ll 3
-export alias l4 = ll 4
-export alias l5 = ll 5
-
 def "nu-complete ps" [] {
     ps -l | each {|x| { value: $"($x.pid)", description: $x.command } }
 }
