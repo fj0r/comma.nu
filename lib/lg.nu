@@ -28,14 +28,14 @@ export-env {
             delimiter: '│'
             fg: ''
             bg: ''
-            terminal: ''
+            terminal: (char newline)
         }
 
     }
 }
 
 def parse_msg [args] {
-    let time = date now | format date '%Y-%m-%dT%H:%M:%S'
+    let time = date now | format date '%FT%T.%3f'
     let s = $args
         | reduce -f {tag: {}, txt:[]} {|x, acc|
             if ($x | describe -d).type == 'record' {
@@ -66,13 +66,14 @@ export def --wrapped level [
     let txt = if ($txt | is-empty) { '' } else { $"($theme.fg)($txt)" }
     let tag = $msg.tag | transpose k v
     if $multiline {
-        let tag = $tag
+        let body = $tag
         | each {|y| $"($theme.bg)($y.k)=($theme.fg)($y.v | to json -r)"}
         | str join (char newline)
-        let r = [$time $label $txt]
+        let head = [$time $label $txt]
         | filter {|x| $x | is-not-empty }
         | str join $theme.delimiter
-        [$r $tag ''] | str join (char newline) | do $output
+        let r = [$head $body] | str join (char newline)
+        $r + $theme.terminal | do $output
     } else {
         let tag = $tag
         | each {|y| $"($theme.bg)($y.k)=($theme.fg)($y.v)"}
