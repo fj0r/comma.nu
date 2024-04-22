@@ -37,6 +37,16 @@ $env.comma = {|_|{
     }
 }}
 ```
+Or using `comma action` command.
+```
+comma action 'dev run' {|a,s,_|
+    nu $a.0
+} {
+    watch: { glob: '*.nu', clear: true }
+    completion: { ls *.nu | get name }
+    desc: "develop a nu script"
+}
+```
 
 These attributes support aliases like:
 
@@ -85,6 +95,23 @@ $env.comma = {|_|{
         $_.filter: ['log']
     }
 }}
+
+```
+Or using `comma scope/node/action` command.
+```
+comma scope 'log' filter {|a,s,m,_|
+    do $_.tips 'run filter' `foo`
+}
+
+comma node 'foo' {
+    filter: ['log']
+}
+
+comma action 'foo bar' {|a,s,_|
+    echo 'hello'
+} {
+    filter: ['log']
+}
 ```
 
 #### Dry run
@@ -143,17 +170,15 @@ If `$_.report` exists and the test fails, execute `$_.report` (has a predefined 
 The default template contains `vscode-tasks` and outputs a `.vscode/tasks.json`.
 
 ```
-$env.comma = {|_|{
-    vscode-tasks: {
-        $_.a: {
-            mkdir .vscode
-            ', --vscode -j' | batch ',.nu' | save -f .vscode/tasks.json
-        }
-        $_.d: "generate .vscode/tasks.json"
-        $_.w: { glob: ',.nu' }
-    }
-}}
+comma action 'vscode-tasks' {
+    mkdir .vscode
+    ', --vscode -j' | batch ',.nu' | save -f .vscode/tasks.json
+} {
+    d: "generate .vscode/tasks.json"
+    w: { glob: ',.nu' }
+}
 ```
+
 - requires `augustocdias.tasks-shell-input` to run `$_.completion` closure.
 - add `!vscode` into `$_.desc` to exclude
 
