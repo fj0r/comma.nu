@@ -28,7 +28,7 @@ export def main [tbl format?: string = 'tree'] {
                 let d = if ($i.description | is-empty) {
                     ''
                 } else {
-                    $"  \(($i.description)\)"
+                    $"(char tab)(ansi grey)# ($i.description)(ansi reset)"
                 }
                 print $"('' | fill -c '    ' -w ($i.level - 1))($i.path)($d)"
             }
