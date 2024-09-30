@@ -2,6 +2,43 @@
 
 Working dir task runner, similar to `pwd-module`, but supports completion and description through custom data formats
 
+## Migration
+
+Consider using Nushell's built-in overlay to achieve similar functionality
+```
+export-env {
+    $env.config.hooks.env_change.PWD ++= [
+        {
+            condition: {|_, after| '__' in (overlay list) }
+            code: "
+                overlay hide __ --keep-env [ PWD ]
+                print $'(ansi default_italic)(ansi grey)unload overlay (ansi default_bold)__(ansi reset)'
+            "
+        }
+        {
+            condition: {|_, after| $after | path join __.nu | path exists }
+            code: "
+                print $'(ansi default_italic)(ansi grey)`__.nu` as overlay (ansi default_bold)__(ansi reset)'
+                overlay use -r __.nu as __ -p
+                cd $after
+            "
+        }
+    ]
+}
+```
+The advantages are being more lightweight and more generic (does not require deploying `Comma`
+ to run)
+
+Some missing features include:
+- Generating documentation
+    - Generating vscode tasks
+- Dynamic descriptions in completions
+- Non-core functionalities
+    - Testing framework
+    - Watch
+    - Computed variables
+    - Dry run
+
 ## Quick Start
 `,` or `*` need to be exported in order to use `,` Directly
 
